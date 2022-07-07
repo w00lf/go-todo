@@ -23,7 +23,7 @@ func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Write(response)
 }
 
-func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
+func (repo *Repository) CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	var todoParams CreateTodoParams
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&todoParams); err != nil {
@@ -32,10 +32,11 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if todo, err := CreateTodo(todoParams); err != nil {
+	todo, err := repo.CreateTodo(todoParams)
+	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, map[string]string{"object_id": todo.Id})
+	respondWithJSON(w, http.StatusCreated, map[string]string{"id": todo.Id})
 }

@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Repository struct {
-	Client *mongo.Client
+	Database *mongo.Database
 }
 
 type Todo struct {
@@ -18,11 +18,19 @@ type Todo struct {
 	Priority    int    `json:"priority"`
 }
 
+func InsertedIDHEX(result *mongo.InsertOneResult) string {
+	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
+		return oid.Hex()
+	} else {
+		return ""
+	}
+}
+
 func (r Repository) CreateTodo(params CreateTodoParams) (Todo, error) {
-	coll := r.Client.Database("sample_mflix").Collection("todos")
+	coll := r.Database.Collection("todos")
 	result, err := coll.InsertOne(context.TODO(), params)
 	if err != nil {
 		return Todo{}, err
 	}
-	return Todo{Id: fmt.Sprintf("%v", result.InsertedID)}, nil
+	return Todo{Id: InsertedIDHEX(result)}, nil
 }
